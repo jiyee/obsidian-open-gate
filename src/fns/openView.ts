@@ -5,11 +5,13 @@ export const openView = async (workspace: Workspace, id: string, position?: Gate
     let leafs = workspace.getLeavesOfType(id)
     if (leafs.length > 0) {
         workspace.revealLeaf(leafs[0])
+        workspace.setActiveLeaf(leafs[0], {focus: true})
         return leafs[0]
     }
 
     leaf = await createView(workspace, id, position)
     workspace.revealLeaf(leaf)
+    workspace.setActiveLeaf(leaf, {focus: true})
 
     return leaf
 }

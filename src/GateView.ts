@@ -1,6 +1,6 @@
 import { ItemView, WorkspaceLeaf, Menu } from 'obsidian'
 import { createWebviewTag } from './fns/createWebviewTag'
-import { Platform } from 'obsidian'
+import { Platform, MarkdownView, Editor } from 'obsidian'
 import { createIframe } from './fns/createIframe'
 import { clipboard } from 'electron'
 import WebviewTag = Electron.WebviewTag
@@ -60,9 +60,28 @@ export class GateView extends ItemView {
             this.frame = createIframe(this.options, onReady)
         } else {
             this.frame = createWebviewTag(this.options, onReady)
+            this.frame.addEventListener('console-message', (e) => {
+                if (e.message.contains("focus-editor")) {
+                    const leaf = this.app.workspace.getLeaf();
+                    if (leaf) {
+                        if (leaf.view instanceof MarkdownView) {
+                            const editor = leaf.view.editor;
+                            editor.focus();
+                        }
+                    }
+                } else if (e.message.contains("focus-leaf")) {
+                    this.frame.focus();
+                }
+            });
         }
 
         this.contentEl.appendChild(this.frame as unknown as HTMLElement)
+
+        this.app.workspace.on("active-leaf-change", () => {
+            if (this.app.workspace.activeLeaf == this.leaf) {
+                this.frame.focus();
+            }
+        })
     }
 
     onunload(): void {
